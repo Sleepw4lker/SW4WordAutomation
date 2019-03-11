@@ -12,6 +12,7 @@ Function Save-WordDocument {
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
 
+        # To-Do: Verify against allowed Extensions
         [Parameter(Mandatory=$True)]
         [ValidateScript({Test-Path ((New-Object System.IO.FileInfo $_).Directory.FullName)})]
         [String]

@@ -12,6 +12,7 @@ Function Open-WordDocument {
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
 
+        # To-Do: Verify against allowed Extensions
         [Parameter(Mandatory=$True)]
         [ValidateScript({Test-Path $_})]
         [String]

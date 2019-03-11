@@ -18,7 +18,7 @@ Function Close-WordDocument {
         Write-Verbose -Message "Closing current Document"
 
         # Check version of Word installed and discard changes
-        If ($Version -eq '14.0') {
+        If ($(Get-WordVersion) -eq 14) {
             $App.ActiveDocument.Close([ref]$False)
         }
         Else {

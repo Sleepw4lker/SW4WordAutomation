@@ -15,14 +15,15 @@ Function Remove-WordDisabledItem {
 
     process {
 
+        # Kudos to
         # https://stackoverflow.com/questions/751048/how-to-programatically-re-enable-documents-in-the-ms-office-list-of-disabled-fil
 
         $WordVersion = Get-WordVersion
 
         # Converts the File Name string to UTF16 Hex
-        $File_UniHex = ""
+        $FileNameInUTF16Hex = ""
         [System.Text.Encoding]::ASCII.GetBytes($File.ToLower()) | ForEach-Object { 
-            $File_UniHex += "{0:X2}00" -f $_
+            $FileNameInUTF16Hex += "{0:X2}00" -f $_
         }
 
         Try {
@@ -35,16 +36,16 @@ Function Remove-WordDisabledItem {
 
         If ($NULL -ne $DisabledItemsRegistryKey) {
 
-            #Cycles through all the properties and deletes it if it contains the file name.
+            # Cycles through all the properties and deletes it if it contains the file name.
             Foreach ($DisabledItem in $DisabledItemsRegistryKey.Property) {
 
                 $Value = ""
 
-                ($DisabledItemsRegistryKey | Get-ItemProperty).$DisabledItem | ForEach-Object{
+                ($DisabledItemsRegistryKey | Get-ItemProperty).$DisabledItem | ForEach-Object {
                     $Value += "{0:X2}" -f $_
                 }
 
-                If ($Value.Contains($File_UniHex)) {
+                If ($Value.Contains($FileNameInUTF16Hex)) {
 
                     Write-Verbose "Removing $File from the List of Disabled Items."
 
