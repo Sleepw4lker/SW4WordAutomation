@@ -1,3 +1,8 @@
+<#
+    .SYNOPSIS
+        To Do: Documentation for this function
+#>
+
 Function Add-WordPictureToHeader {
 
     [cmdletbinding()]
@@ -5,6 +10,9 @@ Function Add-WordPictureToHeader {
         [Parameter(Mandatory=$True)]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
+
+        # https://docs.microsoft.com/en-us/dotnet/api/system.drawing.bitmap?view=netframework-4.7.2
+        # GDI+ supports the following file formats: BMP, GIF, EXIF, JPG, PNG and TIFF. 
 
         [Parameter(Mandatory=$True)]
         [ValidateScript({Test-Path $_})]
@@ -29,15 +37,46 @@ Function Add-WordPictureToHeader {
         [Parameter(Mandatory=$False)]
         [ValidateRange(1,[int16]::MaxValue)]
         [int]
-        $Width,
+        $Width = 300,
 
         [Parameter(Mandatory=$False)]
         [ValidateRange(1,[int16]::MaxValue)]
         [int]
-        $Height
+        $Height = 34
     )
 
+    begin {
+        Add-Type -AssemblyName System.Drawing
+    }
+
     process {
+
+        Write-Verbose "Analyzing $File"
+
+        # Getting the Image, reading Witdth and Height, calculating a Scaling Factor
+        $ImageObject = New-Object System.Drawing.Bitmap $File
+
+        # Grabbing the relevant Data
+        $OldWidth   = $ImageObject.Width
+        $OldHeight  = $ImageObject.Height
+
+        # Releasing the Handle on the Image Object
+        # https://social.msdn.microsoft.com/Forums/vstudio/en-US/7aea078c-5419-4e00-bfd6-c472ab925857/how-do-i-let-properly-powershell-release-a-handle-to-a-systemdrawingbitmap-object?forum=netfxbcl
+        $ImageObject.Dispose()
+
+        Write-Verbose "Original Dimensions: $($OldWidth)x$($OldHeight)"
+        Write-Verbose "Dimension Limits: $($Width)x$($Height)"
+
+        # Determining which (Height or Width) defines the Scaling
+        $ScalingFactor = [math]::Min($Width / $OldWidth, $Height / $OldHeight)
+
+        Write-Verbose "Scaling Factor is $($ScalingFactor)"
+
+        # Rounding the Numbers
+        $NewWidth   = [math]::Floor($OldWidth * $ScalingFactor)
+        $NewHeight  = [math]::Floor($OldHeight * $ScalingFactor)
+
+        Write-Verbose "New Dimensions: $($NewWidth)x$($NewHeight)"
 
         Write-Verbose "Inserting Picture $File at current Selection"
 
@@ -45,14 +84,15 @@ Function Add-WordPictureToHeader {
 
             # https://docs.microsoft.com/en-us/office/vba/api/word.shapes.addpicture
             $Range = $_.Range
+
             [void]$App.ActiveDocument.Shapes.AddPicture(
                 $File,
                 $False,
                 $True,
                 $Left,
                 $Top,
-                [math]::Ceiling($Width),
-                [math]::Ceiling($Height),
+                $NewWidth,
+                $NewHeight,
                 $Range
             )
 

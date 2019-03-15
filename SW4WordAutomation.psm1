@@ -2,7 +2,7 @@ Try {
     Add-Type -AssemblyName Microsoft.Office.Interop.Word
 }
 Catch {
-    Write-Error -Message "Microsoft Office seems not to be installed."
+    Write-Error -Message "Microsoft Word seems not to be installed."
     break
 }
 
