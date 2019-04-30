@@ -82,15 +82,22 @@ Function Write-WordLine {
         $Selection.Font.Bold = $Bold
         $Selection.Font.Underline = $Underline
 
-        If (![String]::IsNullOrEmpty($Style)) {
+        If (-not [String]::IsNullOrEmpty($Style)) {
             
             # https://docs.microsoft.com/en-us/office/vba/api/word.style
             $OldStyle = $Selection.Range.Style.NameLocal
-            $NewStyle = $App.ActiveDocument.Styles | Where-Object { $_.NameLocal -eq $Style }
+
+            Try {
+                $NewStyle = $App.ActiveDocument.Styles($Style)
+            }
+            Catch {
+
+            }
     
             If ($NewStyle) {
                 $Selection.Range.Style = $NewStyle
             } 
+            
         }
 
         # https://msdn.microsoft.com/en-us/VBA/Word-VBA/articles/range-orientation-property-word

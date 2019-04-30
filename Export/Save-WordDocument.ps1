@@ -20,6 +20,10 @@ Function Save-WordDocument {
 
         [Parameter(Mandatory=$False)]
         [Switch]
+        $EmbedFonts = $False,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
         $AsPdf = $False
     )
 
@@ -27,7 +31,17 @@ Function Save-WordDocument {
 
         Write-Verbose -Message "Saving Document as $File"
 
-        If ($AsPdf -eq $True) {
+        If ($EmbedFonts.IsPresent) {
+
+            # https://docs.microsoft.com/en-us/office/vba/api/word.document.embedtruetypefonts
+            $App.ActiveDocument.EmbedTrueTypeFonts = $True
+
+            # https://docs.microsoft.com/en-us/office/vba/api/word.document.donotembedsystemfonts
+            $App.ActiveDocument.DoNotEmbedSystemFonts = $True 
+
+        }
+
+        If ($AsPdf.IsPresent) {
 
             # https://docs.microsoft.com/en-us/office/vba/api/word.saveas2
             # See https://docs.microsoft.com/en-us/office/vba/api/word.wdsaveformat
