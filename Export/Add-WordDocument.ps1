@@ -38,10 +38,20 @@ Function Add-WordDocument {
             Set-WordSelectionToBottomOfDocument -App $App
         }
 
+        <#
+        # https://docs.microsoft.com/en-us/office/vba/api/word.wdinformation
+        # Cursor Position greater 1 means that this is not an empty Line
+        If ($Selection.Information([Microsoft.Office.Interop.Word.WdInformation]::wdFirstCharacterColumnNumber) -gt 1) {
+            # https://docs.microsoft.com/en-us/office/vba/api/word.selection.typeparagraph
+            $Selection.TypeParagraph()
+        }
+        #>
+
         Write-Verbose -Message "Inserting $File"
 
         # Append the Document to the Base Document
-        # See https://technet.microsoft.com/en-us/library/ee692877.aspx
+        # https://technet.microsoft.com/en-us/library/ee692877.aspx
+        # https://docs.microsoft.com/en-us/office/vba/api/word.selection.insertfile
         $Selection.InsertFile($File)
 
     }

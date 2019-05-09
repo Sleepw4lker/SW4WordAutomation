@@ -19,6 +19,8 @@ Function Remove-WordSelection {
 
         # https://docs.microsoft.com/en-us/office/vba/api/Word.Selection.Delete
         [void]$Selection.Delete()
+
+        # https://docs.microsoft.com/de-de/office/vba/api/word.selection.typebackspace
         $Selection.TypeBackSpace()
 
     }
