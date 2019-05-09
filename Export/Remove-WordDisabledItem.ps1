@@ -28,7 +28,9 @@ Function Remove-WordDisabledItem {
 
         Try {
             # Tests to see if the Disabled items registry key exists
-            $DisabledItemsRegistryKey = (Get-Item "HKCU:\Software\Microsoft\Office\${WordVersion}.0\Word\Resiliency\DisabledItems\")
+            $DisabledItemsRegistryKey = Get-Item `
+                -Path "HKCU:\Software\Microsoft\Office\${WordVersion}.0\Word\Resiliency\DisabledItems\" `
+                -ErrorAction SilentlyContinue
         }
         Catch {
             # Nothing yet
