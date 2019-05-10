@@ -8,9 +8,23 @@ Function Set-WordFootersLinkedToSection {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
+
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
 
         [Parameter(Mandatory=$True)]
         [ValidateRange(1,[int16]::MaxValue)]
@@ -22,7 +36,13 @@ Function Set-WordFootersLinkedToSection {
 
         Write-Verbose "Linking all Footers to the One in Section $Section"
 
-        $App.ActiveDocument.Sections | ForEach-Object {
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
+        $Doc.Sections | ForEach-Object {
 
             $SectionIndex++
 

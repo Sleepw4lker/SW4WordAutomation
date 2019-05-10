@@ -8,9 +8,23 @@ Function Search-WordPatternAndReplaceInDocument {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
+
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
 
         [Parameter(Mandatory=$False)]
         [ValidateNotNullOrEmpty()]
@@ -29,10 +43,17 @@ Function Search-WordPatternAndReplaceInDocument {
 
     process {
 
-        # Prohibit Function failure when an empty String is passed
-        If ((![String]::IsNullOrEmpty($Pattern)) -and (![String]::IsNullOrEmpty($ReplaceWith))) {
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
 
-            $Selection = $App.Selection
+        $Selection = $Doc.ActiveWindow.Selection
+
+        # Prohibit Function failure when an empty String is passed
+        If ((-not [String]::IsNullOrEmpty($Pattern)) -and (-not [String]::IsNullOrEmpty($ReplaceWith))) {
+
             Search-WordPatternAndReplaceInSelection `
                 -Selection $Selection `
                 -Pattern $Pattern `
@@ -40,20 +61,24 @@ Function Search-WordPatternAndReplaceInDocument {
 
             If ($IncludeHeaders -eq $True) {
 
-                $App.ActiveDocument.Sections | ForEach-Object {
+                $Doc.Sections | ForEach-Object {
 
                     $_.Headers | ForEach-Object {
+
                         Search-WordPatternAndReplaceInSelection `
                             -Selection $_.Range `
                             -Pattern $Pattern `
                             -ReplaceWith $ReplaceWith
+
                     }
 
                     $_.Footers | ForEach-Object  {
+
                         Search-WordPatternAndReplaceInSelection `
                             -Selection $_.Range `
                             -Pattern $Pattern `
                             -Replacewith $ReplaceWith
+                            
                     }
 
                 }

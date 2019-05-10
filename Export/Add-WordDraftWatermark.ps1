@@ -15,6 +15,7 @@ Function Add-WordDraftWatermark {
 
     process {
 
+        # Can this be changed to $Doc.Templates so that we can call either by $App or $Doc?
         $App.Templates.LoadBuildingBlocks()
 
         # Try to get english ones

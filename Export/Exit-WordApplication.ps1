@@ -9,7 +9,6 @@ Function Exit-WordApplication {
     [cmdletbinding()]
     Param (
         [Parameter(Mandatory=$True)]
-
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App
     )
@@ -17,7 +16,7 @@ Function Exit-WordApplication {
     process {
 
         If ($App.Application.Documents.Count -gt 0) {
-            Close-CurrentDocument $App
+            Close-WordDocument -App $App
         }
 
         Write-Verbose -Message "Exiting Word Application"

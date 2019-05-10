@@ -4,16 +4,17 @@
 #>
 Function Open-WordDocument {
 
-    # You must pass a "Word.Application" Object
-
     [cmdletbinding()]
     Param (
         [Parameter(Mandatory=$True)]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
 
         # To-Do: Verify against allowed Extensions
         [Parameter(Mandatory=$True)]
+        [Alias("Path")]
         [ValidateScript({Test-Path $_})]
         [String]
         $File,
@@ -25,7 +26,7 @@ Function Open-WordDocument {
 
     process {
 
-        Write-Verbose -Message "Opening Document $File. Read-Only: $ReadOnly"
+        Write-Verbose -Message "Opening Document $File. Read-Only: $($ReadOnly.IsPresent)"
         
         # Arrrrghhhh
         Start-Sleep -Seconds 1
@@ -34,7 +35,7 @@ Function Open-WordDocument {
         $DefaultValue = [Type]::Missing
 
         # https://docs.microsoft.com/en-us/dotnet/api/microsoft.office.interop.word.documents.opennorepairdialog?view=word-pia
-        [void]$App.Documents.OpenNoRepairDialog(
+        $Doc = $App.Documents.OpenNoRepairDialog(
             $File,	        # FileName. The name of the document (paths are accepted).
             $False,	        # ConfirmConversions. True to display the Convert File dialog 
                             # box if the file isn't in Microsoft Word format.
@@ -66,7 +67,10 @@ Function Open-WordDocument {
         # https://stackoverflow.com/questions/3822103/how-do-i-programatically-
         # turn-off-the-wavy-red-lines-in-a-microsoft-word-documen
         # Hope this speeds up the processing of the Document
-        $App.ActiveDocument.SpellingChecked = $True
+        $Doc.SpellingChecked = $True
+
+        # Returns an Microsoft.Office.Interop.Word.Document
+        $Doc
 
     }
 

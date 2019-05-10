@@ -8,6 +8,7 @@ Function Remove-WordDisabledItem {
     [cmdletbinding()]
     param(
         [Parameter(Mandatory=$True)]
+        [Alias("Path")]
         [ValidateScript({Test-Path $_})]
         [String]
         $File

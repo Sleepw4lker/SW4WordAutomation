@@ -27,7 +27,7 @@ Function Search-WordPatternAndReplaceInSelection {
     process {
 
         # Prohibit Function failure when an empty String is passed
-        If ((![String]::IsNullOrEmpty($Pattern)) -and (![String]::IsNullOrEmpty($ReplaceWith))) {
+        If ((-not [String]::IsNullOrEmpty($Pattern)) -and (-not [String]::IsNullOrEmpty($ReplaceWith))) {
 
             # ToDo: Verify the below statement, it should not be necessary to do a loop at this point
 

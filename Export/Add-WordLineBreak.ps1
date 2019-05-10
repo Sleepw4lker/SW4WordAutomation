@@ -15,6 +15,7 @@ Function Add-WordLineBreak {
 
     process {
 
+        # Can this be changed to $Doc.Selection so that we can call either by $App or $Doc?
         $Selection = $App.Selection
 
         $Selection.TypeParagraph()

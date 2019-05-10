@@ -8,9 +8,23 @@ Function Write-WordLine {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
+
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
 
         [Parameter(Mandatory=$False)]
         [ValidateNotNullOrEmpty()]
@@ -68,7 +82,13 @@ Function Write-WordLine {
         # ToDo: Remember all Font Settings and restore them after the Script run.
         # ToDo: Implement Numbering
 
-        $Selection = $App.Selection
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
+        $Selection = $Doc.ActiveWindow.Selection
 
         If (![String]::IsNullOrEmpty($Font)) {
             $Selection.Font.Name = $Font
@@ -88,7 +108,7 @@ Function Write-WordLine {
             $OldStyle = $Selection.Range.Style.NameLocal
 
             Try {
-                $NewStyle = $App.ActiveDocument.Styles($Style)
+                $NewStyle = $Doc.Styles($Style)
             }
             Catch {
 
@@ -110,6 +130,7 @@ Function Write-WordLine {
         }
 
         If ($Bullet) {
+            
             # https://docs.microsoft.com/en-us/office/vba/api/word.listformat.applybulletdefault
             # For compatibility reasons, the default constant is wdWord8ListBehavior , but in new procedures 
             # you should use wdWord9ListBehavior to take advantage of improved Web-oriented formatting with 
@@ -119,15 +140,18 @@ Function Write-WordLine {
             $Selection.Range.ListFormat.ApplyBulletDefault(
                 [Microsoft.Office.Interop.Word.WdDefaultListBehavior]::wdWord10ListBehavior
             )
+
         }
 
         $Selection.TypeText($Line)
 
         If ($Indent -ne 0) {
+
             For ($i = 1; $i -le $Indent; $i++) {
                 # https://docs.microsoft.com/en-us/office/vba/api/word.paragraph.indent
                 $Selection.Paragraphs(1).Indent()
             }
+
         }
 
         If (-not ($NoNewLine)) {
@@ -135,22 +159,28 @@ Function Write-WordLine {
             $Selection.TypeParagraph()
 
             If ($Indent -ne 0) {
+
                 For ($i = 1; $i -le $Indent; $i++) {
                     # https://docs.microsoft.com/en-us/office/vba/api/word.paragraph.indent
                     $Selection.Paragraphs(1).Outdent()
                 }
+
             }
 
             If ($Bullet) {
+
                 # ApplyBulletDefault() is just exactly like clicking the bullet 
                 # icon so you have to call it to turn it on and turn it off.
                 $Selection.Range.ListFormat.ApplyBulletDefault(
                     [Microsoft.Office.Interop.Word.WdDefaultListBehavior]::wdWord10ListBehavior
                 )
+
             }
 
             If ($NewStyle) {
+
                 $Selection.Range.Style = $OldStyle
+
             }
 
         }

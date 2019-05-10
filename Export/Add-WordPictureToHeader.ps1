@@ -7,9 +7,23 @@ Function Add-WordPictureToHeader {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
+
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
 
         # https://docs.microsoft.com/en-us/dotnet/api/system.drawing.bitmap?view=netframework-4.7.2
         # GDI+ supports the following file formats: BMP, GIF, EXIF, JPG, PNG and TIFF. 
@@ -51,6 +65,12 @@ Function Add-WordPictureToHeader {
 
     process {
 
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
         Write-Verbose "Analyzing $File"
 
         # Getting the Image, reading Witdth and Height, calculating a Scaling Factor
@@ -80,12 +100,12 @@ Function Add-WordPictureToHeader {
 
         Write-Verbose "Inserting Picture $File at current Selection"
 
-        $App.ActiveDocument.Sections($Section).Headers | ForEach-Object {
+        $Doc.Sections($Section).Headers | ForEach-Object {
 
             # https://docs.microsoft.com/en-us/office/vba/api/word.shapes.addpicture
             $Range = $_.Range
 
-            [void]$App.ActiveDocument.Shapes.AddPicture(
+            [void]$Doc.Shapes.AddPicture(
                 $File,
                 $False,
                 $True,

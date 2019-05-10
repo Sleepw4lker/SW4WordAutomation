@@ -9,9 +9,23 @@ Function Set-WordPaperFormat {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
+
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
 
         [Parameter(Mandatory=$True)]
         [ValidateSet(
@@ -197,8 +211,14 @@ Function Set-WordPaperFormat {
 
         Write-Verbose -Message "Setting Paper Format to ""$Format"""
 
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
         # https://docs.microsoft.com/en-us/office/vba/api/Word.sections
-        $App.ActiveDocument.Sections | ForEach-Object {
+        $Doc.Sections | ForEach-Object {
 
             # https://docs.microsoft.com/en-us/office/vba/api/word.pagesetup.papersize
             # https://gallery.technet.microsoft.com/office/Change-Default-Paper-Size-451f74f8

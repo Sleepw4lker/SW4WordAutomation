@@ -8,12 +8,27 @@ Function Save-WordDocument {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
 
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
+
         # To-Do: Verify against allowed Extensions
         [Parameter(Mandatory=$True)]
+        [Alias("Path")]
         [ValidateScript({Test-Path ((New-Object System.IO.FileInfo $_).Directory.FullName)})]
         [String]
         $File,
@@ -29,23 +44,29 @@ Function Save-WordDocument {
 
     process {
 
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
         Write-Verbose -Message "Saving Document as $File"
 
         If ($EmbedFonts.IsPresent) {
 
             # https://docs.microsoft.com/en-us/office/vba/api/word.document.embedtruetypefonts
-            $App.ActiveDocument.EmbedTrueTypeFonts = $True
+            $Doc.EmbedTrueTypeFonts = $True
 
             # https://docs.microsoft.com/en-us/office/vba/api/word.document.donotembedsystemfonts
-            $App.ActiveDocument.DoNotEmbedSystemFonts = $True 
+            $Doc.DoNotEmbedSystemFonts = $True 
 
         }
 
         If ($AsPdf.IsPresent) {
 
             # https://docs.microsoft.com/en-us/office/vba/api/word.saveas2
-            # See https://docs.microsoft.com/en-us/office/vba/api/word.wdsaveformat
-            $App.ActiveDocument.SaveAs2(
+            # https://docs.microsoft.com/en-us/office/vba/api/word.wdsaveformat
+            $Doc.SaveAs2(
                 $File,
                 [Microsoft.Office.Interop.Word.WdSaveFormat]::wdFormatPDF
             )
@@ -53,7 +74,7 @@ Function Save-WordDocument {
         }
         Else {
 
-            $App.ActiveDocument.SaveAs($File)
+            $Doc.SaveAs($File)
 
         }
 

@@ -7,11 +7,26 @@ Function Set-WordDocumentTemplate {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
 
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
+
         [Parameter(Mandatory=$True)]
+        [Alias("Path")]
         [ValidateScript({Test-Path $_})]
         [String]
         $File
@@ -19,8 +34,14 @@ Function Set-WordDocumentTemplate {
 
     Write-Verbose "Setting Document Styles Template to $File"
 
+    # Assuming that the Function was called via the $App Parameter,
+    # we take the currently active Document as the Document to process
+    If (-not $Doc) {
+        $Doc = $App.ActiveDocument
+    }
+
     # https://docs.microsoft.com/en-us/office/vba/api/word.document.attachedtemplate
-    $App.ActiveDocument.AttachedTemplate = $File
+    $Doc.AttachedTemplate = $File
 
     Write-Verbose "Copying Styles from Template"
 
@@ -29,6 +50,6 @@ Function Set-WordDocumentTemplate {
     # to use Office to update Documents is selected, and the Path is exactly the same, we use $File instead
 
     # https://docs.microsoft.com/en-us/office/vba/api/Word.Document.CopyStylesFromTemplate
-    $App.ActiveDocument.CopyStylesFromTemplate($File)
+    $Doc.CopyStylesFromTemplate($File)
 
 }

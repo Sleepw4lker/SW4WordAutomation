@@ -8,14 +8,34 @@ Function Add-WordPageBreak {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
-        $App
+        $App,
+
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc
     )
 
     process {
 
-        $Selection = $App.Selection
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
+        $Selection = $Doc.ActiveWindow.Selection
 
         # https://docs.microsoft.com/en-us/office/vba/api/word.selection.insertbreak
         # https://docs.microsoft.com/en-us/office/vba/api/word.wdbreaktype

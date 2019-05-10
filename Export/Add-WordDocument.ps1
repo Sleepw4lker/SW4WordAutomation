@@ -8,11 +8,26 @@ Function Add-WordDocument {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
 
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
+
         [Parameter(Mandatory=$True)]
+        [Alias("Path")]
         [ValidateScript({Test-Path $_})]
         [String]
         $File,
@@ -28,14 +43,20 @@ Function Add-WordDocument {
 
     process {
 
-        $Selection = $App.Selection
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
+        $Selection = $Doc.ActiveWindow.Selection
 
         If ($Above) {
-            Set-WordSelectionToTopOfDocument -App $App
+            Set-WordSelectionToTopOfDocument -Doc $Doc
         }
 
         If ($Below) {
-            Set-WordSelectionToBottomOfDocument -App $App
+            Set-WordSelectionToBottomOfDocument -Doc $Doc
         }
 
         <#

@@ -10,9 +10,23 @@ Function Edit-WordPattern {
 
     [cmdletbinding()]
     Param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByApp"
+        )]
+        [Alias("WordApp")]
+        [Alias("Application")]
         [Microsoft.Office.Interop.Word.ApplicationClass]
         $App,
+
+        [Parameter(
+            Mandatory=$True,
+            ParameterSetName="CallByDoc"
+        )]
+        [Alias("WordDoc")]
+        [Alias("Document")]
+        [Microsoft.Office.Interop.Word.Document]
+        $Doc,
 
         [Parameter(Mandatory=$True)]
         [ValidateNotNullOrEmpty()]
@@ -34,18 +48,27 @@ Function Edit-WordPattern {
 
     process {
 
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
         Write-Verbose -Message "Editing Pattern ""$Pattern"""
 
         # We must search without wrapping to avoid an endless loop
-        Set-WordSelectionToTopOfDocument -App $App
+        Set-WordSelectionToTopOfDocument -Doc $Doc
 
         Do {
 
-            $Found = Set-WordSelectionToPattern -App $App -Pattern $Pattern -NoWrap
+            $Found = Set-WordSelectionToPattern `
+                -Doc $Doc `
+                -Pattern $Pattern `
+                -NoWrap
 
             If ($Found -eq $True) {
 
-                $Selection = $App.Selection
+                $Selection = $Doc.ActiveWindow.Selection
 
                 $Selection.Font.Italic = $Italic
                 $Selection.Font.Bold = $Bold

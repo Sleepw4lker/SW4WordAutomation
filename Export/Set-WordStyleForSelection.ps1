@@ -16,12 +16,22 @@ Function Set-WordStyleForSelection {
         $Style = $Null
     )
 
-    $Selection = $App.Selection
+    process {
 
-    $NewStyle = $App.ActiveDocument.Styles | Where-Object { $_.NameLocal -eq $Style }
-    
-    If ($NewStyle) {
-        $Selection.Range.Style = $NewStyle
-    } 
+        # Assuming that the Function was called via the $App Parameter,
+        # we take the currently active Document as the Document to process
+        If (-not $Doc) {
+            $Doc = $App.ActiveDocument
+        }
+
+        $Selection = $Doc.ActiveWindow.Selection
+
+        $NewStyle = $Doc.Styles($Style)
+        
+        If ($NewStyle) {
+            $Selection.Range.Style = $NewStyle
+        } 
+
+    }
 
 }
