@@ -31,6 +31,21 @@ Function Open-WordDocument {
         # Arrrrghhhh
         Start-Sleep -Seconds 1
 
+        <#
+        # Check whether there is a file open with the same name
+
+        # https://docs.microsoft.com/de-de/office/vba/api/word.application.documents
+        # https://docs.microsoft.com/de-de/office/vba/api/word.documents
+        # https://docs.microsoft.com/de-de/office/vba/api/word.document.name
+        $App.Documents | ForEach-Object {
+
+            If ($Doc.Name -eq "Report.docx") {
+                Close-WordDocument -Doc $Doc
+            }
+
+        }
+        #>
+        
         # Use [Type]::Missing for parameters that you want used with their default value.
         $DefaultValue = [Type]::Missing
 
