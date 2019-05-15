@@ -10,7 +10,7 @@ Function New-WordTableFromPipeLine {
     Param (
         [Parameter(
             Position = 0,
-            Mandatory = $False, 
+            Mandatory = $True, 
             ValuefromPipeline = $True
         )]    
         [psobject]$Object,
@@ -77,23 +77,26 @@ Function New-WordTableFromPipeLine {
 
         Write-Verbose "Row $CurrentRow"
 
+        # Before the first Row is written into the Table, we first have to build the Header Row
+        # Thus we enumerate the Properties, create the necessary columns and fill them with the Property Names 
         If ($CurrentRow -eq 1) {
 
             # The first Object that enters the pipeline determines the List of Properties to display
-            # It is advised that you explicitly specify a list of properties when pipelining into the function
-            # by using Select-Object
-            $Properties = $Object | Get-Member -MemberType Property,NoteProperty | Select-Object -Property Name
+            # It is therefores advised that you explicitly specify a list of properties when pipelining 
+            # into the function by using Select-Object
+            # https://stackoverflow.com/questions/51894114/powershell-is-there-a-way-to-get-proper-order-of-properties-in-select-object-so?rq=1
+            $Properties = ($Object.PSObject.Properties).Name
 
             # If there are fewer Columns than our Data, add the Columns
             For ($i = $Table.Range.Columns.Count; $i -lt $Properties.Count; $i++) {
                 [void]$Table.Columns.Add()
             }
 
+            # Fill the Cells with the Property Names
             $CurrentColumn = 1
-
             $Properties | ForEach-Object { 
 
-                $Table.Cell($Currentrow, $CurrentColumn).Range.Text = ($_.Name -as [System.string])
+                $Table.Cell($Currentrow, $CurrentColumn).Range.Text = ($_ -as [System.string])
                 $CurrentColumn++
 
             }
@@ -102,21 +105,22 @@ Function New-WordTableFromPipeLine {
 
         }
 
+        # The first Row that has Data is Row #1, as #1 is the Header Row
         $CurrentRow++
 
         # Insert a Row for the Data
         [void]$Table.Rows.Add()
 
+        # Fill the Cells with the Data
         $CurrentColumn = 1
-
-        $Properties | ForEach-Object { 
+        $Properties | ForEach-Object {
 
             # Objects may have a differing Property Set
-            # Thus checking if the Property is present to avoid confusion
-            If ($_.Name -in  ($Object | Get-Member -MemberType Property,NoteProperty | Select-Object Name).Name) {
+            # Thus checking if the Property is present, and if not, we leave the Cell empty
+            If ($_ -in ($Object.PSObject.Properties).Name) {
 
-                $CellValue = $Object."$($_.Name)" -as [System.string]
-                Write-Verbose "Property $($_.Name) has Value $CellValue in Row $Currentrow, Col $CurrentColumn"
+                $CellValue = $Object."$($_)" -as [System.string]
+                Write-Verbose "Property $($_) has Value $CellValue in Row $Currentrow, Col $CurrentColumn"
                 $Table.Cell($Currentrow, $CurrentColumn).Range.Text = $CellValue
 
             }
@@ -130,6 +134,7 @@ Function New-WordTableFromPipeLine {
 
     End {
 
+        # Move to Set-WordTableCaption with -Label, -Above and -Below Switch
         If ($Caption) {
 
             Write-Verbose "Adding Caption $Caption"
@@ -146,6 +151,7 @@ Function New-WordTableFromPipeLine {
 
         }
 
+        # Move to Set-WordTableStyle
         If ($Style) {
 
             Write-Verbose "Setting Table Style to $Style"
@@ -157,6 +163,11 @@ Function New-WordTableFromPipeLine {
             }
 
         }
+
+        # Set-WordTableAutoFitBehavior
+        # Set-WordTableBehavior
+        # Set-WordTableFontStyle with -HeaderStyle and -ContentStyle
+        # Move the Selection below the Table when finished and before returning the Object
 
         $Table
 
