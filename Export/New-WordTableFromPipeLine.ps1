@@ -38,10 +38,29 @@ Function New-WordTableFromPipeLine {
         [String]
         $Caption,
 
-        # To Do: Parameter Validation
         [Parameter(Mandatory=$False)]
+        [ValidateScript({
+            # Will break if Function was called by App
+            Test-WordIsValidStyle -Doc $Doc -Style $_ -Type Table
+        })]
         [String]
-        $Style = "Table Grid"
+        $TableStyle,
+
+        [Parameter(Mandatory=$True)]
+        [ValidateScript({
+            # Will break if Function was called by App
+            Test-WordIsValidStyle -Doc $Doc -Style $_
+        })]
+        [String]
+        $Style,
+
+        [Parameter(Mandatory=$False)]
+        [ValidateScript({
+            # Will break if Function was called by App
+            Test-WordIsValidStyle -Doc $Doc -Style $_
+        })]
+        [String]
+        $HeaderStyle
     )
 
     begin {
@@ -96,7 +115,11 @@ Function New-WordTableFromPipeLine {
             $CurrentColumn = 1
             $Properties | ForEach-Object { 
 
-                $Table.Cell($Currentrow, $CurrentColumn).Range.Text = ($_ -as [System.string])
+                $CurrentCell = $Table.Cell($Currentrow, $CurrentColumn).Range
+                $CurrentCell.Text = ($_ -as [System.string])
+                If ($HeaderStyle) {
+                    $CurrentCell.Style = $Doc.Styles($HeaderStyle)
+                }
                 $CurrentColumn++
 
             }
@@ -121,7 +144,11 @@ Function New-WordTableFromPipeLine {
 
                 $CellValue = $Object."$($_)" -as [System.string]
                 Write-Verbose "Property $($_) has Value $CellValue in Row $Currentrow, Col $CurrentColumn"
-                $Table.Cell($Currentrow, $CurrentColumn).Range.Text = $CellValue
+                $CurrentCell = $Table.Cell($Currentrow, $CurrentColumn).Range
+                $CurrentCell.Text = $CellValue
+                If ($Style) {
+                    $CurrentCell.Style = $Doc.Styles($Style)
+                }
 
             }
             $CurrentColumn++
@@ -134,40 +161,27 @@ Function New-WordTableFromPipeLine {
 
     End {
 
-        # Move to Set-WordTableCaption with -Label, -Above and -Below Switch
         If ($Caption) {
-
-            Write-Verbose "Adding Caption $Caption"
-            # Add Caption to Table
-            # https://msdn.microsoft.com/en-us/vba/word-vba/articles/selection-insertcaption-method-word
-            $Table.Range.InsertCaption(
-                # https://docs.microsoft.com/en-us/office/vba/api/word.wdcaptionlabelid
-                [Microsoft.Office.Interop.Word.WdCaptionLabelID]::wdCaptionTable,
-                ": $Caption",
-                $False, 
-                # https://docs.microsoft.com/en-us/dotnet/api/microsoft.office.interop.word.wdcaptionposition?view=word-pia
-                [Microsoft.Office.Interop.Word.WdCaptionPosition]::wdCaptionPositionBelow
-            )
-
+            Set-WordTableCaption -Table $Table -Caption $Caption
         }
 
-        # Move to Set-WordTableStyle
-        If ($Style) {
-
-            Write-Verbose "Setting Table Style to $Style"
-            Try {
-                $Table.Style = $Style
-            }
-            Catch {
-                
-            }
-
+        If ($TableStyle) {
+            Set-WordTableStyle -Table $Table -Style $TableStyle
         }
 
         # Set-WordTableAutoFitBehavior
         # Set-WordTableBehavior
-        # Set-WordTableFontStyle with -HeaderStyle and -ContentStyle
+
         # Move the Selection below the Table when finished and before returning the Object
+        $Table.Select()
+
+        $Selection.Collapse([Microsoft.Office.Interop.Word.WdCollapseDirection]::wdCollapseEnd)
+
+        # If the Table has a Caption, the Cursor will otherwise land at the beginning of the Caption
+        If ($Caption) {
+            $Selection.EndKey([Microsoft.Office.Interop.Word.wdUnits]::wdLine)
+            $Selection.TypeParagraph()
+        }
 
         $Table
 

@@ -102,7 +102,7 @@ Function Write-WordLine {
         $Selection.Font.Bold = $Bold
         $Selection.Font.Underline = $Underline
 
-        If (-not [String]::IsNullOrEmpty($Style)) {
+        If ($Style) {
             
             # https://docs.microsoft.com/en-us/office/vba/api/word.style
             $OldStyle = $Selection.Range.Style.NameLocal
