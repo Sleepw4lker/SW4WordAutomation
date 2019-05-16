@@ -49,7 +49,35 @@ Function New-WordTableFromPipeLine {
 
         [Parameter(Mandatory=$False)]
         [Switch]
-        $RepeatHeader
+        $RepeatHeader,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
+        $NoNewLine,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
+        $StyleColumnBands,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
+        $NoStyleFirstColumn,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
+        $NoStyleHeadingRows,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
+        $StyleLastColumn,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
+        $StyleLastRow,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
+        $NoStyleRowBands
     )
 
     begin {
@@ -157,23 +185,34 @@ Function New-WordTableFromPipeLine {
             $Table.Rows(1).HeadingFormat = $True
         }
 
+        $Table.ApplyStyleColumnBands	= $StyleColumnBands.IsPresent
+        $Table.ApplyStyleFirstColumn	= (-not $NoStyleFirstColumn.IsPresent)
+        $Table.ApplyStyleHeadingRows	= (-not $NoStyleHeadingRows.IsPresent)
+        $Table.ApplyStyleLastColumn	    = $StyleLastColumn.IsPresent
+        $Table.ApplyStyleLastRow	    = $StyleLastRow.IsPresent
+        $Table.ApplyStyleRowBands	    = (-not $NoStyleRowBands.IsPresent)
+
         # Set-WordTableAutoFitBehavior
         # Set-WordTableBehavior
 
-        # Move the Selection below the Table when finished and before returning the Object
-        $Table.Select()
+        If (-not $NoNewLine.IsPresent) {
 
-        $Selection.Collapse([Microsoft.Office.Interop.Word.WdCollapseDirection]::wdCollapseEnd)
+            # Move the Selection below the Table when finished and before returning the Object
+            $Table.Select()
 
-        # If the Table has a Caption, the Cursor will otherwise land at the beginning of the Caption
-        If ($Caption) {
+            $Selection.Collapse([Microsoft.Office.Interop.Word.WdCollapseDirection]::wdCollapseEnd)
 
-            # Move to End of Line
-            $Selection.EndKey([Microsoft.Office.Interop.Word.wdUnits]::wdLine)
-            
-            # Enter Key
-            $Selection.TypeParagraph()
-            
+            # If the Table has a Caption, the Cursor will otherwise land at the beginning of the Caption
+            If ($Caption) {
+
+                # Move to End of Line
+                $Selection.EndKey([Microsoft.Office.Interop.Word.wdUnits]::wdLine)
+                
+                # Enter Key
+                $Selection.TypeParagraph()
+                
+            }
+
         }
 
         $Table
