@@ -15,19 +15,7 @@ Function New-WordTableFromPipeLine {
         )]    
         [psobject]$Object,
 
-        [Parameter(
-            Mandatory=$True,
-            ParameterSetName="CallByApp"
-        )]
-        [Alias("WordApp")]
-        [Alias("Application")]
-        [Microsoft.Office.Interop.Word.ApplicationClass]
-        $App,
-
-        [Parameter(
-            Mandatory=$True,
-            ParameterSetName="CallByDoc"
-        )]
+        [Parameter(Mandatory=$True)]
         [Alias("WordDoc")]
         [Alias("Document")]
         [Microsoft.Office.Interop.Word.Document]
@@ -40,7 +28,6 @@ Function New-WordTableFromPipeLine {
 
         [Parameter(Mandatory=$False)]
         [ValidateScript({
-            # Will break if Function was called by App
             Test-WordIsValidStyle -Doc $Doc -Style $_ -Type Table
         })]
         [String]
@@ -48,7 +35,6 @@ Function New-WordTableFromPipeLine {
 
         [Parameter(Mandatory=$True)]
         [ValidateScript({
-            # Will break if Function was called by App
             Test-WordIsValidStyle -Doc $Doc -Style $_
         })]
         [String]
@@ -56,7 +42,6 @@ Function New-WordTableFromPipeLine {
 
         [Parameter(Mandatory=$False)]
         [ValidateScript({
-            # Will break if Function was called by App
             Test-WordIsValidStyle -Doc $Doc -Style $_
         })]
         [String]
@@ -68,12 +53,6 @@ Function New-WordTableFromPipeLine {
     )
 
     begin {
-
-        # Assuming that the Function was called via the $App Parameter,
-        # we take the currently active Document as the Document to process
-        If (-not $Doc) {
-            $Doc = $App.ActiveDocument
-        }
 
         $Selection = $Doc.ActiveWindow.Selection
 

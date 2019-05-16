@@ -7,19 +7,7 @@ Function Set-WordDocumentTemplate {
 
     [cmdletbinding()]
     Param (
-        [Parameter(
-            Mandatory=$True,
-            ParameterSetName="CallByApp"
-        )]
-        [Alias("WordApp")]
-        [Alias("Application")]
-        [Microsoft.Office.Interop.Word.ApplicationClass]
-        $App,
-
-        [Parameter(
-            Mandatory=$True,
-            ParameterSetName="CallByDoc"
-        )]
+        [Parameter(Mandatory=$True)]
         [Alias("WordDoc")]
         [Alias("Document")]
         [Microsoft.Office.Interop.Word.Document]
@@ -33,12 +21,6 @@ Function Set-WordDocumentTemplate {
     )
 
     Write-Verbose "Setting Document Styles Template to $File"
-
-    # Assuming that the Function was called via the $App Parameter,
-    # we take the currently active Document as the Document to process
-    If (-not $Doc) {
-        $Doc = $App.ActiveDocument
-    }
 
     # https://docs.microsoft.com/en-us/office/vba/api/word.document.attachedtemplate
     $Doc.AttachedTemplate = $File
