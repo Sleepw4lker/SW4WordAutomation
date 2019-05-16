@@ -60,7 +60,11 @@ Function New-WordTableFromPipeLine {
             Test-WordIsValidStyle -Doc $Doc -Style $_
         })]
         [String]
-        $HeaderStyle
+        $HeaderStyle,
+
+        [Parameter(Mandatory=$False)]
+        [Switch]
+        $RepeatHeader
     )
 
     begin {
@@ -169,6 +173,11 @@ Function New-WordTableFromPipeLine {
             Set-WordTableStyle -Table $Table -Style $TableStyle
         }
 
+        If ($RepeatHeader.IsPresent) {
+            # https://docs.microsoft.com/en-us/office/vba/api/word.row.headingformat
+            $Table.Rows(1).HeadingFormat = $True
+        }
+
         # Set-WordTableAutoFitBehavior
         # Set-WordTableBehavior
 
@@ -179,8 +188,13 @@ Function New-WordTableFromPipeLine {
 
         # If the Table has a Caption, the Cursor will otherwise land at the beginning of the Caption
         If ($Caption) {
+
+            # Move to End of Line
             $Selection.EndKey([Microsoft.Office.Interop.Word.wdUnits]::wdLine)
+            
+            # Enter Key
             $Selection.TypeParagraph()
+            
         }
 
         $Table
