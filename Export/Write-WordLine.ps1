@@ -8,6 +8,14 @@ Function Write-WordLine {
 
     [cmdletbinding()]
     Param (
+        [Parameter(
+            Position = 0,
+            Mandatory = $True, 
+            ValuefromPipeline = $True
+        )]
+        [String[]]
+        $Line,
+
         [Parameter(Mandatory=$True)]
         [Alias("WordDoc")]
         [Alias("Document")]
@@ -40,11 +48,6 @@ Function Write-WordLine {
         [Switch]
         $Underline = $False,
 
-        [Parameter(Mandatory=$True)]
-        [ValidateNotNullOrEmpty()]
-        [String]
-        $Line,
-
         [Parameter(Mandatory=$False)]
         [Switch]
         $Italic = $False,
@@ -66,12 +69,7 @@ Function Write-WordLine {
         $Upward = $False
     )
 
-    process {
-
-
-        # ToDo: Remember all Font Settings and restore them after the Script run.
-        # ToDo: Implement Numbering
-
+    begin {
 
         $Selection = $Doc.ActiveWindow.Selection
 
@@ -128,7 +126,18 @@ Function Write-WordLine {
 
         }
 
-        $Selection.TypeText($Line)
+    }
+
+    process {
+
+        $Line | ForEach-Object {
+            $Selection.TypeText($_)
+            $Selection.TypeParagraph()
+        }
+
+    }
+
+    end {
 
         If ($Indent -ne 0) {
 
@@ -139,37 +148,36 @@ Function Write-WordLine {
 
         }
 
-        If (-not ($NoNewLine)) {
+        If ($NoNewLine) {
+            $Selection.TypeBackspace()
+        }
 
-            $Selection.TypeParagraph()
+        If ($Indent -ne 0) {
 
-            If ($Indent -ne 0) {
-
-                For ($i = 1; $i -le $Indent; $i++) {
-                    # https://docs.microsoft.com/en-us/office/vba/api/word.paragraph.indent
-                    $Selection.Paragraphs(1).Outdent()
-                }
-
-            }
-
-            If ($Bullet) {
-
-                # ApplyBulletDefault() is just exactly like clicking the bullet 
-                # icon so you have to call it to turn it on and turn it off.
-                $Selection.Range.ListFormat.ApplyBulletDefault(
-                    [Microsoft.Office.Interop.Word.WdDefaultListBehavior]::wdWord10ListBehavior
-                )
-
-            }
-
-            If ($NewStyle) {
-
-                $Selection.Range.Style = $OldStyle
-
+            For ($i = 1; $i -le $Indent; $i++) {
+                # https://docs.microsoft.com/en-us/office/vba/api/word.paragraph.indent
+                $Selection.Paragraphs(1).Outdent()
             }
 
         }
 
+        If ($Bullet) {
+
+            # ApplyBulletDefault() is just exactly like clicking the bullet 
+            # icon so you have to call it to turn it on and turn it off.
+            $Selection.Range.ListFormat.ApplyBulletDefault(
+                [Microsoft.Office.Interop.Word.WdDefaultListBehavior]::wdWord10ListBehavior
+            )
+
+        }
+
+        If ($NewStyle) {
+
+            $Selection.Range.Style = $OldStyle
+
+        }
+
+        
     }
 
 }

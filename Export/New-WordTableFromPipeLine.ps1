@@ -98,7 +98,7 @@ Function New-WordTableFromPipeLine {
             # https://docs.microsoft.com/en-us/office/vba/api/word.wddefaulttablebehavior
             [Microsoft.Office.Interop.Word.WdDefaultTableBehavior]::wdWord9TableBehavior,
             # https://docs.microsoft.com/en-us/office/vba/api/word.wdautofitbehavior
-            [Microsoft.Office.Interop.Word.WdAutoFitBehavior]::wdAutoFitContent
+            [Microsoft.Office.Interop.Word.WdAutoFitBehavior]::wdAutoFitFixed
         )
 
     }
@@ -191,6 +191,8 @@ Function New-WordTableFromPipeLine {
         $Table.ApplyStyleLastColumn	    = $StyleLastColumn.IsPresent
         $Table.ApplyStyleLastRow	    = $StyleLastRow.IsPresent
         $Table.ApplyStyleRowBands	    = (-not $NoStyleRowBands.IsPresent)
+
+        $Table.AutoFitBehavior([Microsoft.Office.Interop.Word.WdAutoFitBehavior]::wdAutoFitContent)
 
         # Set-WordTableAutoFitBehavior
         # Set-WordTableBehavior
