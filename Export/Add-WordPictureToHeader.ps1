@@ -70,7 +70,10 @@ Function Add-WordPictureToHeader {
         Write-Verbose "Dimension Limits: $($Width)x$($Height)"
 
         # Determining which (Height or Width) defines the Scaling
-        $ScalingFactor = [math]::Min($Width / $OldWidth, $Height / $OldHeight)
+        $ScalingFactor = [math]::Min(
+            [double]($Width / $OldWidth), 
+            [double]($Height / $OldHeight)
+            )
 
         Write-Verbose "Scaling Factor is $($ScalingFactor)"
 
